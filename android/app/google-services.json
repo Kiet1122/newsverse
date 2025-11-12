@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "587220375167",
+    "project_id": "app-newsverses",
+    "storage_bucket": "app-newsverses.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:587220375167:android:9cfc778ac5763de8dfd14a",
+        "android_client_info": {
+          "package_name": "com.example.newsverse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxu3_TRXx4_8ZStEVwNIxZwNzvltmaz1A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
