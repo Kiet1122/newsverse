@@ -11,30 +11,30 @@ Tuần 2 tập trung vào việc chuẩn bị kiến trúc dự án và xây d�
 
 📂 Cấu trúc thư mục Flutter
 Cấu trúc thư mục đã được thiết kế theo mô hình **feature + presentation + viewmodel + data**:
-
+```
 lib/
-│
 ├── core/
-│ ├── constants/
-│ ├── utils/
-│ ├── theme/
-│ ├── widgets/
-│ └── services/ 
+│   ├── constants/
+│   ├── utils/
+│   ├── theme/
+│   ├── widgets/
+│   └── services/
 │
 ├── features/
-│ ├── auth/
-│ │ ├── presentation/
-│ │ ├── viewmodel/
-│ │ └── data/
-│ ├── news/
-│ ├── journalist/
-│ ├── admin/
-│ ├── profile/
-│ └── notification/
+│   ├── auth/
+│   │   ├── presentation/
+│   │   ├── viewmodel/
+│   │   └── data/
+│   ├── news/
+│   ├── journalist/
+│   ├── admin/
+│   ├── profile/
+│   └── notification/
 │
 ├── main.dart
 ├── firebase_options.dart
 └── routes/
+```
 > Mỗi feature tách biệt giữa UI (`presentation`), logic (`viewmodel`) và dữ liệu (`data`) để dễ quản lý.
 
 🔄 Luồng chức năng và mối liên hệ màn hình
