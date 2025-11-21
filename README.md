@@ -1,79 +1,174 @@
-📰 Báo cáo tuần 2 – Dự án NewsVerse (08/11 – 14/11)
-Tuần 2 tập trung vào việc chuẩn bị kiến trúc dự án và xây dựng giao diện cơ bản cho ứng dụng đọc tin tức cá nhân hóa.  
+# 📰 NewsVerse - Báo Cáo Tuần 3
 
-🎯 Mục tiêu tuần
-- 🏗 Thiết kế kiến trúc project và cấu trúc thư mục Flutter theo mô hình chuẩn.
-- 🔄 Phân tích luồng chức năng chính và mối liên hệ giữa các màn hình.
-- 🎨 Tham khảo UI/UX từ các app News phổ biến (Báo Mới, Zing News, Google News) để xác định phong cách thiết kế.
-- 💻 Khởi tạo repository GitHub và đẩy project Flutter lên quản lý mã nguồn.
-- 📱 Xây dựng giao diện cơ bản cho các màn hình: Đăng nhập, Đăng ký, Trang chủ.
-- 🔐 Thiết lập Firebase Authentication và kiểm tra đăng nhập cơ bản.
+## 🗓️ Thời gian: Tuần 3 (Hoàn thành dự án)
 
-📂 Cấu trúc thư mục Flutter
-Cấu trúc thư mục đã được thiết kế theo mô hình **feature + presentation + viewmodel + data**:
+## 📋 Tổng quan
+Tuần này tập trung vào hoàn thiện toàn bộ ứng dụng NewsVerse với đầy đủ tính năng: Authentication, News Feed, và Navigation.
 
+## ✅ Công việc đã hoàn thành
+
+### 1. 🔐 Hệ thống Authentication
+- **Đăng ký tài khoản** với các role: User, Journalist
+- **Đăng nhập** với email/password
+- **Quên mật khẩu** - gửi email reset
+- **Auto-login** - giữ trạng thái đăng nhập
+- **Đăng xuất** an toàn
+
+### 2. 📰 Hệ thống Tin tức
+- **Kết hợp dữ liệu** từ Firebase + NewsAPI
+- **Loại bỏ trùng lặp** tự động
+- **Phân loại tin** theo categories
+- **Chi tiết bài viết** với đầy đủ thông tin
+
+### 3. 🧭 Hệ thống Navigation
+- **Routing chuyên nghiệp** với `app_routes.dart`
+- **Navigation named routes** thay vì MaterialPageRoute
+- **Truyền parameters** an toàn giữa các màn hình
+
+### 4. 🎨 Giao diện người dùng
+- **HomeScreen** với categories và news list
+- **NewsDetailScreen** hiển thị chi tiết bài viết
+- **Auth screens** (Login, Register, Forgot Password)
+
+## 🏗️ Kiến trúc ứng dụng
+
+```
 lib/
 │
-├── core/
-│ ├── constants/
-│ ├── utils/
-│ ├── theme/
-│ ├── widgets/
-│ └── services/ 
+├── firebase_options.dart          # Cấu hình Firebase
+├── main.dart                      # Khởi chạy ứng dụng
 │
-├── features/
-│ ├── auth/
-│ │ ├── presentation/
-│ │ ├── viewmodel/
-│ │ └── data/
-│ ├── news/
-│ ├── journalist/
-│ ├── admin/
-│ ├── profile/
-│ └── notification/
+├── core/                          # Lõi ứng dụng
+│   ├── constants/
+│   │   └── api_constants.dart     # API keys và URLs
+│   │
+│   ├── services/
+│   │   ├── api/
+│   │   │   └── news_api_service.dart      # Gọi API tin tức
+│   │   └── firebase/
+│   │       ├── auth_service.dart          # Đăng nhập, đăng ký
+│   │       └── firestore_service.dart     # Truy vấn database
+│   │
+│   └── utils/
+│       └── enums/
+│           └── article_source.dart        # Loại nguồn tin
 │
-├── main.dart
-├── firebase_options.dart
-└── routes/
-> Mỗi feature tách biệt giữa UI (`presentation`), logic (`viewmodel`) và dữ liệu (`data`) để dễ quản lý.
+├── features/                      # Các tính năng
+│   ├── auth/                      # Xác thực
+│   │   ├── auth_provider.dart           # Quản lý trạng thái đăng nhập
+│   │   ├── screens/
+│   │   │   ├── login_screen.dart        # Màn hình đăng nhập
+│   │   │   ├── register_screen.dart     # Màn hình đăng ký
+│   │   │   └── forgot_password_screen.dart # Quên mật khẩu
+│   │   └── widgets/
+│   │       ├── auth_button.dart         # Nút đăng nhập/đăng ký
+│   │       └── auth_text_field.dart     # Ô nhập thông tin
+│   │
+│   ├── home/                      # Trang chủ
+│   │   ├── home_provider.dart           # Quản lý tin tức
+│   │   ├── screens/
+│   │   │   └── home_screen.dart         # Màn hình chính
+│   │   └── widgets/
+│   │       ├── category_chips.dart      # Danh mục tin
+│   │       ├── news_card.dart           # Thẻ tin tức
+│   │       └── news_list.dart           # Danh sách tin
+│   │
+│   ├── news/                      # Chi tiết tin
+│   │   └── screens/
+│   │       └── news_detail_screen.dart  # Màn hình chi tiết
+│   │
+│   ├── admin/                     # Quản trị (chưa phát triển)
+│   ├── journalist/                # Nhà báo (chưa phát triển)
+│   ├── notification/              # Thông báo (chưa phát triển)
+│   └── profile/                   # Hồ sơ (chưa phát triển)
+│
+├── models/                        # Dữ liệu
+│   ├── article_model.dart               # Model bài viết
+│   ├── bookmark_model.dart              # Model bookmark
+│   ├── category_model.dart              # Model danh mục
+│   ├── user_model.dart                  # Model người dùng
+│   └── api/
+│       ├── api_article.dart             # Model API article
+│       └── news_response.dart           # Model phản hồi API
+│
+├── providers/                     # Quản lý trạng thái
+│   └── app_provider.dart               # Provider toàn cục
+│
+└── routes/                        # Điều hướng
+    ├── app_routes.dart                 # Định nghĩa routes
+    └── route_names.dart                # Tên routes
+```
 
-🔄 Luồng chức năng và mối liên hệ màn hình
-👥 Actor
-1. **User**: Đăng ký/Đăng nhập, đọc tin, bookmark, xem trang cá nhân.  
-2. **Journalist**: Đăng bài, chỉnh sửa bài viết.  
-3. **Admin**: Quản lý bài viết và người dùng.  
+## 🔧 Tính năng chính
 
-🗺 Luồng cơ bản
-- Đăng nhập/Đăng ký → kiểm tra Firebase Auth → Trang chủ.  
-- Trang chủ → danh sách tin → chọn bài → Chi tiết bài viết.  
-- Bookmark/Like/Comment → cập nhật Firestore.  
-- Admin/Journalist → truy cập màn hình quản lý riêng.  
-> Dự kiến toàn dự án gồm **23 màn hình**.
+### Authentication Flow
+```dart
+// Đăng ký → Xác thực → Tạo user document → Chuyển Home
+AuthProvider.signUp() → Firebase Auth → Firestore → HomeScreen
+```
 
-🎨 Tham khảo UI/UX
-- **Nguồn tham khảo**: Báo Mới, Zing News, Google News  
-- **Quy tắc thiết kế**:  
-  - Cuộn dọc, Card hiển thị bài viết lớn/nhỏ.  
-  - Bottom Navigation Bar: Tin tức, Video, Xu hướng, Cá nhân.  
-  - Header rõ ràng, phân cấp thông tin trực quan.  
+### News Data Flow
+```dart
+// Kết hợp nhiều nguồn dữ liệu
+Firebase Articles + NewsAPI → Combine & Remove Duplicates → Display
+```
 
-📱 Giao diện cơ bản đã triển khai
-- **LoginScreen**: Email, Password, nút Đăng nhập.  
-- **RegisterScreen**: Email, Password, nút Đăng ký, chuyển sang LoginScreen.  
-- **HomeScreen**: Scaffold với AppBar, danh sách tin mẫu.
+### Navigation Flow
+```dart
+// Sử dụng named routes
+Navigator.pushNamed(context, RouteNames.newsDetail, arguments: article)
+```
 
-🔐 Firebase Authentication
-- Thiết lập Firebase Auth cho dự án Flutter.  
-- Kiểm tra đăng nhập/đăng ký cơ bản hoạt động.  
-- Người dùng mới được tạo trong Firebase Console.
+## 📊 Kết quả đạt được
 
-💻 Quản lý mã nguồn
-- Repository GitHub: [https://github.com/Kiet1122/newsverse](https://github.com/Kiet1122/newsverse)  
-- Đã push toàn bộ source code cơ bản (`lib/features/auth`, `main.dart`, `firebase_options.dart`).  
-- Commit đầu tiên chứa cấu trúc thư mục chuẩn và README.md tuần 2.
+### ✅ Đã hoàn thành
+- [x] Toàn bộ authentication system
+- [x] News feed với multiple sources
+- [x] Professional routing system
+- [x] Complete UI/UX
+- [x] Error handling & loading states
+- [x] Firebase integration
 
-✅ Kết luận tuần 2
-- Cấu trúc thư mục Flutter đã chuẩn hóa.  
-- Giao diện cơ bản các màn hình hoạt động đúng.  
-- Firebase Authentication hoạt động, đăng nhập/đăng ký thành công.  
-- GitHub repository đã sẵn sàng cho các tính năng tuần 3.
+### 🔄 Hoạt động tốt
+- **API News**: Lấy được 19+ bài viết từ NewsAPI
+- **Firebase**: Lưu trữ user data và categories ...
+- **Authentication**: Đăng ký/đăng nhập ổn định
+- **Navigation**: Chuyển trang mượt mà
+
+## 🐛 Vấn đề đã giải quyết
+
+1. **Firebase Auth Errors** - Xử lý lỗi và hiển thị message tiếng Việt
+2. **API Rate Limiting** - Xử lý khi API hết request
+3. **Duplicate Articles** - Tự động loại bỏ bài viết trùng
+4. **Navigation Type Safety** - Sử dụng arguments với type checking
+
+
+## 📱 Demo ứng dụng
+
+### Màn hình chính
+![Home](https://res.cloudinary.com/dmnkakpnb/image/upload/v1763747909/Annotation_2025-11-22_001958_ra16ka.png)
+
+### Authentication
+![Auth](https://res.cloudinary.com/dmnkakpnb/image/upload/v1763747909/Annotation_2025-11-22_002111_g7joye.png)
+![User](https://res.cloudinary.com/dmnkakpnb/image/upload/v1763747908/Annotation_2025-11-22_002046_iezurg.png)
+
+
+### Chi tiết
+![Detail](https://res.cloudinary.com/dmnkakpnb/image/upload/v1763747908/Annotation_2025-11-22_002022_vyqydo.png)
+
+
+## 🎯 Kết luận
+
+**Tuần 3 thành công** với việc hoàn thiện toàn bộ ứng dụng NewsVerse. Ứng dụng đã có:
+
+- ✅ **Authentication system** hoàn chỉnh
+- ✅ **News aggregation** từ multiple sources
+- ✅ **Professional architecture** với clean code
+- ✅ **User-friendly interface** với tiếng Việt
+- ✅ **Firebase integration** ổn định
+
+Ứng dụng sẵn sàng cho việc sử dụng thực tế và có thể mở rộng thêm nhiều tính năng trong tương lai.
+
+---
+**Developed by**: Nguyễn Tất Kiệt  
+**Date**: 22/11/2025  
