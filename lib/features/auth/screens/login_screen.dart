@@ -21,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Clear error khi screen được khởi tạo
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       authProvider.clearError();
@@ -35,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Perform login with email and password
   Future<void> _login(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -46,23 +46,30 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
-        // Đăng nhập thành công, chuyển đến home
-        // ignore: use_build_context_synchronously
-        Navigator.pushReplacementNamed(context, RouteNames.home);
+        Navigator.pushNamedAndRemoveUntil(
+          context, 
+          RouteNames.home, 
+          (route) => false
+        );
       }
     }
   }
 
+  /// Navigate to registration screen
   void _navigateToRegister() {
     Navigator.pushReplacementNamed(context, RouteNames.register);
   }
 
+  /// Navigate to forgot password screen
   void _navigateToForgotPassword() {
     Navigator.pushNamed(context, RouteNames.forgotPassword);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -70,125 +77,199 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 40),
-                Text(
-                  'Đăng nhập',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Chào mừng trở lại! Vui lòng đăng nhập vào tài khoản của bạn.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                ),
-                const SizedBox(height: 40),
-                AuthTextField(
-                  controller: _emailController,
-                  labelText: 'Email',
-                  hintText: 'Nhập email của bạn',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập email';
-                    }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                        .hasMatch(value)) {
-                      return 'Email không hợp lệ';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                AuthTextField(
-                  controller: _passwordController,
-                  labelText: 'Mật khẩu',
-                  hintText: 'Nhập mật khẩu của bạn',
-                  obscureText: _obscurePassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Vui lòng nhập mật khẩu';
-                    }
-                    if (value.length < 6) {
-                      return 'Mật khẩu phải có ít nhất 6 ký tự';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _navigateToForgotPassword,
-                    child: const Text('Quên mật khẩu?'),
-                  ),
-                ),
+                
+                // Header section with logo and welcome message
+                _buildHeader(theme, colors),
+                const SizedBox(height: 48),
+                
+                // Login form section
+                _buildForm(theme, colors),
                 const SizedBox(height: 24),
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    // Hiển thị error message nếu có
-                    if (authProvider.error != null) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(authProvider.error!),
-                            backgroundColor: Colors.red,
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
-                        authProvider.clearError();
-                      });
-                    }
-
-                    return Column(
-                      children: [
-                        AuthButton(
-                          text: 'Đăng nhập',
-                          onPressed: () {
-                            if (!authProvider.isLoading) {
-                              _login(context);
-                            }
-                          },
-                          isLoading: authProvider.isLoading,
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Chưa có tài khoản? ',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                            TextButton(
-                              onPressed: authProvider.isLoading ? null : _navigateToRegister,
-                              child: const Text('Đăng ký ngay'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                
+                // Action buttons section
+                _buildActionSection(),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Builds the header section with app logo and welcome text
+  Widget _buildHeader(ThemeData theme, ColorScheme colors) {
+    return Column(
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.primary.withOpacity(0.1),
+                colors.primary.withOpacity(0.05),
+              ],
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.newspaper_rounded,
+            size: 50,
+            color: colors.primary,
+          ),
+        ),
+        const SizedBox(height: 32),
+        Text(
+          'Chào mừng trở lại',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colors.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Đăng nhập để tiếp tục khám phá tin tức',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colors.onSurface.withOpacity(0.6),
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  /// Builds the login form with email and password fields
+  Widget _buildForm(ThemeData theme, ColorScheme colors) {
+    return Column(
+      children: [
+        AuthTextField(
+          controller: _emailController,
+          labelText: 'Email',
+          hintText: 'Nhập email của bạn',
+          keyboardType: TextInputType.emailAddress,
+          prefixIcon: Icon(Icons.email_rounded, color: colors.onSurface.withOpacity(0.5)),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Vui lòng nhập email';
+            }
+            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+              return 'Email không hợp lệ';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 20),
+        AuthTextField(
+          controller: _passwordController,
+          labelText: 'Mật khẩu',
+          hintText: 'Nhập mật khẩu của bạn',
+          obscureText: _obscurePassword,
+          prefixIcon: Icon(Icons.lock_rounded, color: colors.onSurface.withOpacity(0.5)),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+              color: colors.onSurface.withOpacity(0.5),
+            ),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Vui lòng nhập mật khẩu';
+            }
+            if (value.length < 6) {
+              return 'Mật khẩu phải có ít nhất 6 ký tự';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: _navigateToForgotPassword,
+            style: TextButton.styleFrom(
+              foregroundColor: colors.primary,
+            ),
+            child: const Text('Quên mật khẩu?'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the action section with login button and registration link
+  Widget _buildActionSection() {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        if (authProvider.error != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showErrorSnackBar(context, authProvider.error!);
+            authProvider.clearError();
+          });
+        }
+
+        return Column(
+          children: [
+            AuthButton(
+              text: 'Đăng nhập',
+              onPressed: () {
+                if (!authProvider.isLoading) {
+                  _login(context);
+                }
+              },
+              isLoading: authProvider.isLoading,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Chưa có tài khoản? ',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+                TextButton(
+                  onPressed: authProvider.isLoading ? null : _navigateToRegister,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                  ),
+                  child: const Text(
+                    'Đăng ký ngay',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Shows error message in a snackbar
+  void _showErrorSnackBar(BuildContext context, String error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(child: Text(error)),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }

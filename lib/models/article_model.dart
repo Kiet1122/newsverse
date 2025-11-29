@@ -11,6 +11,8 @@ class ArticleModel {
   final DateTime publishedAt;
   final String? content;
   final String source;
+  final String? categoryId; // ID from Firestore
+  final String? category;   // Value from category mapping
 
   ArticleModel({
     required this.id,
@@ -22,8 +24,11 @@ class ArticleModel {
     required this.publishedAt,
     this.content,
     required this.source,
+    this.categoryId,
+    this.category,
   });
 
+  /// Create ArticleModel from API article data
   factory ArticleModel.fromApiArticle(ApiArticle apiArticle) {
     return ArticleModel(
       id: 'api_${DateTime.now().millisecondsSinceEpoch}',
@@ -35,9 +40,11 @@ class ArticleModel {
       publishedAt: apiArticle.publishedAt,
       content: apiArticle.content,
       source: apiArticle.sourceName,
+      category: 'general', // Default for API articles
     );
   }
 
+  /// Create ArticleModel from Firestore document
   factory ArticleModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return ArticleModel(
@@ -50,9 +57,40 @@ class ArticleModel {
       publishedAt: (data['publishedAt'] as Timestamp).toDate(),
       content: data['content'],
       source: data['source'] ?? 'Firebase',
+      categoryId: data['category'], // Store categoryId from Firestore
     );
   }
 
+  /// Create a copy of the article with updated fields
+  ArticleModel copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? author,
+    String? url,
+    String? imageUrl,
+    DateTime? publishedAt,
+    String? content,
+    String? source,
+    String? categoryId,
+    String? category,
+  }) {
+    return ArticleModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      author: author ?? this.author,
+      url: url ?? this.url,
+      imageUrl: imageUrl ?? this.imageUrl,
+      publishedAt: publishedAt ?? this.publishedAt,
+      content: content ?? this.content,
+      source: source ?? this.source,
+      categoryId: categoryId ?? this.categoryId,
+      category: category ?? this.category,
+    );
+  }
+
+  /// Convert article to JSON for Firestore
   Map<String, dynamic> toJson() {
     return {
       'title': title,
@@ -63,12 +101,16 @@ class ArticleModel {
       'publishedAt': Timestamp.fromDate(publishedAt),
       'content': content,
       'source': source,
+      if (categoryId != null) 'category': categoryId,
     };
   }
 
+  /// Get article summary (description or default message)
   String get summary => description ?? 'No description available';
   
+  /// Get article image URL or empty string
   String get image => imageUrl ?? '';
   
+  /// Get source name
   String get sourceName => source; 
 }

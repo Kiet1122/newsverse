@@ -1,122 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/article_model.dart';
-import '../../auth/auth_provider.dart';
-import '../../../core/services/firebase/firestore_service.dart';
+import '../../profile/widgets/bookmark_button.dart';
 
 class NewsDetailScreen extends StatelessWidget {
   final ArticleModel article;
 
-  const NewsDetailScreen({
-    super.key,
-    required this.article,
-  });
+  const NewsDetailScreen({super.key, required this.article});
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.read<AuthProvider>();
-    final firestoreService = FirestoreService();
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Chi tiết tin tức'),
+        title: const Text(
+          'Chi tiết tin tức',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
         actions: [
+          BookmarkButton(article: article),
           IconButton(
-            icon: const Icon(Icons.share),
+            icon: Icon(Icons.share, color: Colors.grey[700]),
             onPressed: () => _shareArticle(context),
             tooltip: 'Chia sẻ',
-          ),
-          IconButton(
-            icon: const Icon(Icons.bookmark_border),
-            onPressed: () => _bookmarkArticle(context, authProvider, firestoreService),
-            tooltip: 'Lưu bài viết',
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tiêu đề
             Text(
               article.title,
               style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                height: 1.3,
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                height: 1.4,
+                color: Colors.black87,
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
-            // Thông tin meta
+
             _buildMetaInfo(),
-            
-            const SizedBox(height: 16),
-            
-            // Hình ảnh
-            if (article.imageUrl != null && article.imageUrl!.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  article.imageUrl!,
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: double.infinity,
-                      height: 200,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.article, size: 50, color: Colors.grey),
-                    );
-                  },
-                ),
-              ),
-            
+
             const SizedBox(height: 20),
-            
-            // Mô tả
+
+            if (article.imageUrl != null && article.imageUrl!.isNotEmpty)
+              _buildArticleImage(),
+
+            const SizedBox(height: 24),
+
             if (article.description != null && article.description!.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    article.description!,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      height: 1.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            
-            // Nội dung
-            if (article.content != null && article.content!.isNotEmpty)
-              Text(
-                _cleanContent(article.content!),
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.6,
-                ),
-              )
-            else if (article.description != null && article.description!.isNotEmpty)
-              Text(
-                article.description!,
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.6,
-                ),
-              ),
-            
-            const SizedBox(height: 30),
-            
-            // Nút hành động
-            _buildActionButtons(context, authProvider, firestoreService),
+              _buildDescription(),
+
+            _buildContent(),
+
+            const SizedBox(height: 32),
+
+            _buildCommentsSection(),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -124,82 +72,400 @@ class NewsDetailScreen extends StatelessWidget {
   }
 
   Widget _buildMetaInfo() {
-    return Row(
-      children: [
-        // Nguồn tin
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(6),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+              const SizedBox(width: 6),
+              Text(
+                _formatTimeAgo(article.publishedAt),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          child: Text(
-            article.source,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.blue[800],
-              fontWeight: FontWeight.w500,
+
+          const Spacer(),
+
+          if (article.author != null && article.author!.isNotEmpty)
+            Row(
+              children: [
+                Icon(Icons.person_outline, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 6),
+                Text(
+                  article.author!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArticleImage() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Image.network(
+        article.imageUrl!,
+        width: double.infinity,
+        height: 220,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            width: double.infinity,
+            height: 220,
+            color: Colors.grey[100],
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: double.infinity,
+            height: 220,
+            color: Colors.grey[100],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.photo_library, size: 50, color: Colors.grey[400]),
+                const SizedBox(height: 8),
+                Text(
+                  'Không thể tải hình ảnh',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDescription() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue[100]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.description, size: 18, color: Colors.blue[700]),
+              const SizedBox(width: 8),
+              Text(
+                'Tóm tắt',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue[800],
+                ),
+              ),
+            ],
           ),
-        ),
-        
-        const SizedBox(width: 8),
-        
-        // Thời gian
-        Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
-        const SizedBox(width: 4),
-        Text(
-          _formatTimeAgo(article.publishedAt),
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-        
-        const Spacer(),
-        
-        // Tác giả
-        if (article.author != null && article.author!.isNotEmpty)
+          const SizedBox(height: 8),
           Text(
-            'Tác giả: ${article.author!}',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
+            article.description!,
+            style: const TextStyle(
+              fontSize: 15,
+              height: 1.5,
+              color: Colors.black87,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    final content = article.content != null && article.content!.isNotEmpty
+        ? _cleanContent(article.content!)
+        : (article.description ?? 'Nội dung đang được cập nhật...');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text(
+          content,
+          style: const TextStyle(
+            fontSize: 16,
+            height: 1.7,
+            color: Colors.black87,
+          ),
+          textAlign: TextAlign.justify,
+        ),
+        const SizedBox(height: 24),
+
+        Container(
+          width: double.infinity,
+          height: 50,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue[600]!, Colors.blue[700]!],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _readOriginal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.launch, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Đọc bài viết gốc',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, AuthProvider authProvider, FirestoreService firestoreService) {
+  Widget _buildCommentsSection() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _readOriginal,
-            icon: const Icon(Icons.launch),
-            label: const Text('Đọc bài gốc'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+        Row(
+          children: [
+            Icon(Icons.comment, color: Colors.grey[700], size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Bình luận',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '3',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+          ],
         ),
-        
-        const SizedBox(height: 12),
-        
-        SizedBox(
+
+        const SizedBox(height: 16),
+
+        _buildCommentItem(
+          avatar: 'U',
+          name: 'Nguyễn Văn A',
+          time: '2 giờ trước',
+          content:
+              'Bài viết rất hay và hữu ích. Cảm ơn tác giả đã chia sẻ thông tin chi tiết như vậy!',
+          likes: 12,
+        ),
+
+        const SizedBox(height: 16),
+
+        _buildCommentItem(
+          avatar: 'T',
+          name: 'Trần Thị B',
+          time: '4 giờ trước',
+          content:
+              'Thông tin được cập nhật rất nhanh chóng. Tôi thường xuyên theo dõi các bài viết tại đây.',
+          likes: 8,
+        ),
+
+        const SizedBox(height: 16),
+
+        _buildCommentItem(
+          avatar: 'L',
+          name: 'Lê Văn C',
+          time: '1 ngày trước',
+          content:
+              'Có thêm hình ảnh minh họa sẽ giúp bài viết sinh động hơn. Hy vọng tác giả cân nhắc!',
+          likes: 5,
+        ),
+
+        const SizedBox(height: 20),
+
+        Container(
           width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _bookmarkArticle(context, authProvider, firestoreService),
-            icon: const Icon(Icons.bookmark_border),
-            label: const Text('Lưu bài viết'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {},
+              child: Center(
+                child: Text(
+                  'Xem thêm bình luận',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCommentItem({
+    required String avatar,
+    required String name,
+    required String time,
+    required String content,
+    required int likes,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.blue[100],
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                avatar,
+                style: TextStyle(
+                  color: Colors.blue[800],
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      time,
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  content,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.4,
+                    color: Colors.black87,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Row(
+                  children: [
+                    Icon(
+                      Icons.favorite_border,
+                      size: 16,
+                      color: Colors.grey[500],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      likes.toString(),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                    const SizedBox(width: 16),
+                    Icon(Icons.reply, size: 16, color: Colors.grey[500]),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Phản hồi',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -229,39 +495,25 @@ class NewsDetailScreen extends StatelessWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      print('Không thể mở URL: ${article.url}');
+      ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể mở liên kết'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   void _shareArticle(BuildContext context) {
-    print('Chia sẻ bài viết: ${article.title}');
-    
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tính năng chia sẻ đang được phát triển'),
-      ),
-    );
-  }
-
-  void _bookmarkArticle(BuildContext context, AuthProvider authProvider, FirestoreService firestoreService) {
-    if (authProvider.user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng đăng nhập để lưu bài viết'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    final userId = authProvider.user!['uid'];
-    print('Lưu bài viết: ${article.title} cho user: $userId');
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Đã lưu bài viết vào danh sách yêu thích'),
-        backgroundColor: Colors.green,
+      SnackBar(
+        content: const Text('Tính năng chia sẻ đang được phát triển'),
+        backgroundColor: Colors.grey[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
 }
+
+final navigatorKey = GlobalKey<NavigatorState>();

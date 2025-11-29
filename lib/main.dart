@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:newsverse/features/auth/screens/login_screen.dart';
+import 'package:newsverse/features/bookmark/bookmark_provider.dart';
 import 'package:newsverse/features/home/home_provider.dart';
-import 'package:newsverse/features/home/screens/home_screen.dart';
+import 'package:newsverse/features/profile/profile_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -10,7 +10,7 @@ import 'features/auth/auth_provider.dart';
 import 'core/services/api/news_api_service.dart';
 import 'core/services/firebase/firestore_service.dart';
 import 'routes/app_routes.dart';
-
+import 'routes/route_names.dart'; 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -36,44 +36,16 @@ class MyApp extends StatelessWidget {
             firestoreService: FirestoreService(),
           ),
         ),
+        ChangeNotifierProvider(create: (context) => BookmarkProvider()),
+        ChangeNotifierProvider(create: (context) => ProfileProvider()),
       ],
       child: MaterialApp(
         title: 'NewsVerse',
         theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-        home: const AuthWrapper(), 
-        onGenerateRoute: generateRoute,
+        initialRoute: RouteNames.splash, 
+        onGenerateRoute: generateRoute, 
         debugShowCheckedModeBanner: false,
       ),
     );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-
-    if (authProvider.isInitializing) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Đang khởi tạo...'),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (authProvider.user == null) {
-      return const LoginScreen();
-    }
-
-    return const HomeScreen();
   }
 }

@@ -1,36 +1,49 @@
 import 'package:flutter/material.dart';
 
 class AuthButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed; // Sử dụng VoidCallback thay vì Function
-  final bool isLoading;
+  final String text; 
+  final VoidCallback onPressed; 
+  final bool isLoading; 
+  final Color? backgroundColor;
+  final Color? textColor; 
+  final double? elevation; 
 
   const AuthButton({
     super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
+    this.backgroundColor,
+    this.textColor,
+    this.elevation = 0,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: backgroundColor ?? colors.primary,
+          foregroundColor: textColor ?? colors.onPrimary,
+          elevation: elevation,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
+          shadowColor: Colors.transparent,
         ),
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 height: 20,
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  color: colors.onPrimary,
                 ),
               )
             : Text(
@@ -38,6 +51,7 @@ class AuthButton extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
                 ),
               ),
       ),

@@ -4,7 +4,7 @@ class UserModel {
   final String id;
   final String name;
   final String email;
-  final String role; // 'user' | 'journalist' | 'admin'
+  final String role; 
   final String? avatarUrl;
   final List<String> favoriteCategories;
   final DateTime createdAt;
@@ -25,7 +25,7 @@ class UserModel {
     required this.preferences,
   });
 
-  // Tạo object từ Firestore DocumentSnapshot
+  /// Create UserModel from Firestore DocumentSnapshot
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return UserModel(
@@ -42,7 +42,7 @@ class UserModel {
     );
   }
 
-  // Chuyển object thành Map để lưu lên Firestore
+  /// Convert UserModel to Map for Firestore storage
   Map<String, dynamic> toMap() {
     return {
       'name': name,

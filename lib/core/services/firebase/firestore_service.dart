@@ -3,17 +3,14 @@ import '../../../models/article_model.dart';
 import '../../../models/category_model.dart';
 import '../../../models/bookmark_model.dart';
 
-// Service để làm việc với Firestore database
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Lấy danh sách các danh mục tin tức
+  /// Get all categories from Firestore
   Future<List<CategoryModel>> getCategories() async {
     try {
-      // Lấy tất cả documents từ collection 'categories'
       final snapshot = await _firestore.collection('categories').get();
-      
-      // Chuyển đổi từ Firestore documents sang CategoryModel
+
       return snapshot.docs
           .map((doc) => CategoryModel.fromFirestore(doc))
           .toList();
@@ -22,13 +19,11 @@ class FirestoreService {
     }
   }
 
-  // Lấy danh sách bài viết từ Firebase
+  /// Get all articles from Firestore
   Future<List<ArticleModel>> getFirebaseArticles() async {
     try {
-      // Lấy tất cả bài viết từ collection 'articles'
       final snapshot = await _firestore.collection('articles').get();
-      
-      // Chuyển đổi từ Firestore documents sang ArticleModel
+
       return snapshot.docs
           .map((doc) => ArticleModel.fromFirestore(doc))
           .toList();
@@ -37,26 +32,52 @@ class FirestoreService {
     }
   }
 
-  // Thêm bài viết vào danh sách bookmark của user
+  /// Search articles in Firestore based on query
+  Future<List<ArticleModel>> searchFirebaseArticles(String query) async {
+    try {
+      final querySnapshot = await _firestore.collection('articles').get();
+
+      final allArticles = querySnapshot.docs
+          .map((doc) => ArticleModel.fromFirestore(doc))
+          .toList();
+
+      final filteredArticles = allArticles.where((article) {
+        final searchText = query.toLowerCase();
+        return article.title.toLowerCase().contains(searchText) ||
+            (article.description?.toLowerCase().contains(searchText) ??
+                false) ||
+            (article.content?.toLowerCase().contains(searchText) ?? false) ||
+            (article.author?.toLowerCase().contains(searchText) ?? false) ||
+            (article.source.toLowerCase().contains(searchText));
+      }).toList();
+
+      print(
+        'Firestore search for "$query" found ${filteredArticles.length} articles',
+      );
+      return filteredArticles;
+    } catch (e) {
+      print('Error searching Firebase articles: $e');
+      return [];
+    }
+  }
+
+  /// Add a bookmark to Firestore
   Future<void> addBookmark(BookmarkModel bookmark) async {
     try {
-      // Thêm document mới vào collection 'bookmarks'
       await _firestore.collection('bookmarks').add(bookmark.toJson());
     } catch (e) {
       throw Exception('Lỗi thêm bookmark: $e');
     }
   }
 
-  // Lấy danh sách bookmark của một user
+  /// Get user's bookmarks from Firestore
   Future<List<BookmarkModel>> getUserBookmarks(String userId) async {
     try {
-      // Tìm các bookmark có userId trùng khớp
       final snapshot = await _firestore
           .collection('bookmarks')
           .where('userId', isEqualTo: userId)
           .get();
 
-      // Chuyển đổi kết quả sang BookmarkModel
       return snapshot.docs
           .map((doc) => BookmarkModel.fromFirestore(doc))
           .toList();
@@ -65,17 +86,15 @@ class FirestoreService {
     }
   }
 
-  // Lấy thông tin chi tiết một bài viết theo ID
+  /// Get a specific article by its ID
   Future<ArticleModel?> getArticleById(String articleId) async {
     try {
-      // Lấy document cụ thể từ collection 'articles'
       final doc = await _firestore.collection('articles').doc(articleId).get();
-      
-      // Kiểm tra nếu document tồn tại thì trả về dữ liệu
+
       if (doc.exists) {
         return ArticleModel.fromFirestore(doc);
       }
-      return null; // Trả về null nếu không tìm thấy
+      return null; 
     } catch (e) {
       throw Exception('Lỗi lấy bài viết: $e');
     }

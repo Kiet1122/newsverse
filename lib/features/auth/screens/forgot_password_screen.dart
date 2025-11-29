@@ -32,6 +32,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
+  /// Send password reset email to the provided email address
   Future<void> _resetPassword(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -49,111 +50,179 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
+  /// Navigate back to login screen
   void _navigateToLogin() {
     Navigator.pushReplacementNamed(context, RouteNames.login);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quên mật khẩu'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 40),
-                Text(
-                  'Khôi phục mật khẩu',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _isEmailSent
-                      ? 'Chúng tôi đã gửi email hướng dẫn khôi phục mật khẩu. Vui lòng kiểm tra hộp thư của bạn.'
-                      : 'Nhập email của bạn để nhận liên kết khôi phục mật khẩu.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                ),
+                
+                // Header section with icon and title
+                _buildHeader(theme, colors),
                 const SizedBox(height: 40),
                 
-                if (!_isEmailSent) ...[
-                  AuthTextField(
-                    controller: _emailController,
-                    labelText: 'Email',
-                    hintText: 'Nhập email của bạn',
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập email';
-                      }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                          .hasMatch(value)) {
-                        return 'Email không hợp lệ';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                ],
-
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    // Hiển thị error message nếu có
-                    if (authProvider.error != null) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(authProvider.error!),
-                            backgroundColor: Colors.red,
-                            duration: const Duration(seconds: 3),
-                          ),
-                        );
-                        authProvider.clearError();
-                      });
-                    }
-
-                    if (_isEmailSent) {
-                      return Column(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 64,
-                          ),
-                          const SizedBox(height: 20),
-                          AuthButton(
-                            text: 'Quay lại đăng nhập',
-                            onPressed: _navigateToLogin,
-                            isLoading: false,
-                          ),
-                        ],
-                      );
-                    }
-
-                    return AuthButton(
-                      text: 'Gửi liên kết khôi phục',
-                      onPressed: authProvider.isLoading ? () {} : () { _resetPassword(context); },
-                      isLoading: authProvider.isLoading,
-                    );
-                  },
-                ),
+                // Main content section
+                _buildContent(theme, colors),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Builds the header section with icon and title
+  Widget _buildHeader(ThemeData theme, ColorScheme colors) {
+    return Column(
+      children: [
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            color: colors.primary.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.lock_reset_rounded,
+            size: 40,
+            color: colors.primary,
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Khôi phục mật khẩu',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colors.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the main content based on email sent status
+  Widget _buildContent(ThemeData theme, ColorScheme colors) {
+    if (_isEmailSent) {
+      return _buildSuccessState(theme, colors);
+    }
+
+    return _buildFormState(theme, colors);
+  }
+
+  /// Builds the form state for entering email address
+  Widget _buildFormState(ThemeData theme, ColorScheme colors) {
+    return Column(
+      children: [
+        Text(
+          'Nhập email của bạn để nhận liên kết khôi phục mật khẩu',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colors.onSurface.withOpacity(0.6),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        AuthTextField(
+          controller: _emailController,
+          labelText: 'Email',
+          hintText: 'Nhập email của bạn',
+          keyboardType: TextInputType.emailAddress,
+          prefixIcon: Icon(Icons.email_rounded, color: colors.onSurface.withOpacity(0.5)),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Vui lòng nhập email';
+            }
+            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+              return 'Email không hợp lệ';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 32),
+        Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            if (authProvider.error != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _showErrorSnackBar(context, authProvider.error!);
+                authProvider.clearError();
+              });
+            }
+
+            return AuthButton(
+              text: 'Gửi liên kết khôi phục',
+              onPressed: () {
+                if (authProvider.isLoading) return;
+                _resetPassword(context);
+              },
+              isLoading: authProvider.isLoading,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Builds the success state after email has been sent
+  Widget _buildSuccessState(ThemeData theme, ColorScheme colors) {
+    return Column(
+      children: [
+        Icon(
+          Icons.check_circle_rounded,
+          size: 80,
+          color: colors.primary,
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Đã gửi email thành công',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colors.onSurface,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Chúng tôi đã gửi hướng dẫn khôi phục mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colors.onSurface.withOpacity(0.6),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+        AuthButton(
+          text: 'Quay lại đăng nhập',
+          onPressed: _navigateToLogin,
+        ),
+      ],
+    );
+  }
+
+  /// Shows error message in a snackbar
+  void _showErrorSnackBar(BuildContext context, String error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(child: Text(error)),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }

@@ -1,18 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Service xử lý đăng ký, đăng nhập với Firebase
+// Service for handling authentication with Firebase
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Lấy thông tin user hiện tại
+  // Get current user information
   User? get currentUser => _auth.currentUser;
 
-  // Theo dõi trạng thái đăng nhập (dùng để tự động chuyển trang)
+  // Stream to monitor authentication state changes (for automatic page navigation)
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Đăng ký tài khoản mới
+  /// Register a new user account with email and password
   Future<Map<String, dynamic>?> signUpWithEmailAndPassword({
     required String name,
     required String email,
@@ -20,67 +20,67 @@ class AuthService {
     required String role,
   }) async {
     try {
-      print('Bắt đầu đăng ký: $email');
+      print('Starting registration: $email');
       
-      // Tạo tài khoản trong Firebase Authentication
+      // Create account in Firebase Authentication
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      print('Đăng ký Firebase Auth thành công: ${credential.user!.uid}');
+      print('Firebase Auth registration successful: ${credential.user!.uid}');
 
-      // Tạo dữ liệu user để lưu vào database
+      // Create user data to save in database
       final userData = {
         'name': name,
         'email': email,
         'role': role,
-        'avatarUrl': null, // Ảnh đại diện (chưa có)
-        'favoriteCategories': [], // Danh mục yêu thích
-        'createdAt': Timestamp.fromDate(DateTime.now()), // Ngày tạo
-        'updatedAt': Timestamp.fromDate(DateTime.now()), // Ngày cập nhật
-        'lastLogin': Timestamp.fromDate(DateTime.now()), // Lần đăng nhập cuối
-        'preferences': {}, // Cài đặt cá nhân
+        'avatarUrl': null, // Profile picture (not available yet)
+        'favoriteCategories': [], // Favorite categories
+        'createdAt': Timestamp.fromDate(DateTime.now()), // Creation date
+        'updatedAt': Timestamp.fromDate(DateTime.now()), // Update date
+        'lastLogin': Timestamp.fromDate(DateTime.now()), // Last login
+        'preferences': {}, // Personal settings
       };
 
-      // Lưu thông tin user vào Firestore database
+      // Save user information to Firestore database
       await _firestore
           .collection('users')
           .doc(credential.user!.uid)
           .set(userData);
 
-      print('Tạo user trong Firestore thành công');
+      print('User created successfully in Firestore');
 
-      // Trả về thông tin user đã đăng ký
+      // Return registered user information
       return {
         'id': credential.user!.uid,
         ...userData,
       };
     } catch (e) {
-      print('Lỗi đăng ký: $e');
+      print('Registration error: $e');
       throw _handleAuthError(e);
     }
   }
 
-  // Đăng nhập với email và mật khẩu
+  /// Sign in with email and password
   Future<Map<String, dynamic>?> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     try {
-      // Xác thực với Firebase Auth
+      // Authenticate with Firebase Auth
       UserCredential credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Cập nhật thời gian đăng nhập cuối
+      // Update last login time
       await _firestore.collection('users').doc(credential.user!.uid).update({
         'lastLogin': Timestamp.fromDate(DateTime.now()),
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
 
-      // Lấy thông tin user từ database
+      // Get user information from database
       DocumentSnapshot userDoc = await _firestore
           .collection('users')
           .doc(credential.user!.uid)
@@ -99,12 +99,12 @@ class AuthService {
     }
   }
 
-  // Đăng xuất
+  /// Sign out the current user
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // Gửi email reset mật khẩu
+  /// Send password reset email
   Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -113,7 +113,7 @@ class AuthService {
     }
   }
 
-  // Lấy thông tin user từ database
+  /// Get user data from database
   Future<Map<String, dynamic>?> getUserData(String uid) async {
     try {
       DocumentSnapshot userDoc =
@@ -131,15 +131,15 @@ class AuthService {
     }
   }
 
-  // Xử lý lỗi từ Firebase - chuyển thành tiếng Việt dễ hiểu
+  /// Handle Firebase authentication errors and convert to Vietnamese messages
   String _handleAuthError(dynamic error) {
-    print('Lỗi Firebase Auth: ${error.toString()}');
+    print('Firebase Auth error: ${error.toString()}');
     
     if (error is FirebaseAuthException) {
-      print('Mã lỗi: ${error.code}');
-      print('Thông báo lỗi: ${error.message}');
+      print('Error code: ${error.code}');
+      print('Error message: ${error.message}');
       
-      // Dịch các lỗi phổ biến sang tiếng Việt
+      // Translate common errors to Vietnamese
       switch (error.code) {
         case 'email-already-in-use':
           return 'Email đã được sử dụng. Vui lòng sử dụng email khác.';

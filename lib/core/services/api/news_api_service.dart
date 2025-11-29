@@ -3,76 +3,74 @@ import 'package:http/http.dart' as http;
 import '../../constants/api_constants.dart';
 import '../../../models/api/news_response.dart';
 
-// Service để gọi API lấy tin tức
 class NewsApiService {
-  
-  // Lấy tin tức theo danh mục
-  // category: loại tin (chung, kinh doanh, công nghệ, thể thao...)
-  // mặc định là tin chung
+  /// Fetches news articles from the NewsAPI based on category
   Future<NewsResponse> fetchNews({String category = 'general'}) async {
     try {
-      // Tạo URL để gọi API
-      final url = '${ApiConstants.newsBaseUrl}/top-headlines?country=us&category=$category&apiKey=${ApiConstants.newsApiKey}';
-      print('Đang lấy tin từ: $url');
-      
-      // Gửi request đến API
+      final url =
+          '${ApiConstants.newsBaseUrl}/top-headlines?country=us&category=$category&apiKey=${ApiConstants.newsApiKey}';
+      print('Fetching news from: $url');
+
       final response = await http.get(Uri.parse(url));
 
-      print('Mã phản hồi: ${response.statusCode}');
-      
-      // Kiểm tra kết quả
+      print('Response code: ${response.statusCode}');
+
       if (response.statusCode == 200) {
-        // Chuyển đổi dữ liệu JSON
         final data = json.decode(response.body);
-        print('API thành công - Trạng thái: ${data['status']}');
-        print('Tổng số kết quả: ${data['totalResults']}');
-        print('Số bài viết: ${data['articles']?.length ?? 0}');
-        
-        // In bài viết đầu tiên để kiểm tra
+        print('API success - Status: ${data['status']}');
+        print('Total results: ${data['totalResults']}');
+        print('Number of articles: ${data['articles']?.length ?? 0}');
+
         if (data['articles'] != null && data['articles'].isNotEmpty) {
-          print('Bài viết đầu tiên: ${data['articles'][0]['title']}');
+          print('First article: ${data['articles'][0]['title']}');
         }
-        
-        // Trả về dữ liệu đã xử lý
+
         return NewsResponse.fromJson(data);
       } else if (response.statusCode == 401) {
-        print('Lỗi 401: API key không hợp lệ');
+        print('Error 401: Invalid API key');
         throw Exception('API key không hợp lệ hoặc đã hết hạn');
       } else if (response.statusCode == 429) {
-        print('Lỗi 429: Quá nhiều request');
+        print('Error 429: Too many requests');
         throw Exception('Đã vượt quá giới hạn request API');
       } else {
-        print('Lỗi API ${response.statusCode}: ${response.body}');
+        print('API error ${response.statusCode}: ${response.body}');
         throw Exception('Lỗi API: ${response.statusCode}');
       }
     } catch (e) {
-      print('Lỗi kết nối NewsAPI: $e');
+      print('NewsAPI connection error: $e');
       throw Exception('Không thể kết nối đến NewsAPI: $e');
     }
   }
 
-  // Tìm kiếm tin tức theo từ khóa
-  // query: từ khóa cần tìm
+  /// Searches for news articles based on query string
   Future<NewsResponse> searchNews(String query) async {
     try {
-      // Tạo URL tìm kiếm
-      final url = '${ApiConstants.newsBaseUrl}/everything?q=$query&apiKey=${ApiConstants.newsApiKey}';
-      print('Đang tìm kiếm: $url');
-      
-      // Gửi request tìm kiếm
+      final url =
+          '${ApiConstants.newsBaseUrl}/everything?q=$query&pageSize=50&sortBy=relevancy&apiKey=${ApiConstants.newsApiKey}';
+      print('Searching API: $url');
+
       final response = await http.get(Uri.parse(url));
 
-      print('Mã phản hồi tìm kiếm: ${response.statusCode}');
-      
+      print('Search API response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print('Search successful - Total results: ${data['totalResults']}');
+        print('Search articles found: ${data['articles']?.length ?? 0}');
         return NewsResponse.fromJson(data);
+      } else if (response.statusCode == 401) {
+        print('Search API error: Invalid API key');
+        throw Exception('API key không hợp lệ hoặc đã hết hạn');
+      } else if (response.statusCode == 429) {
+        print('Search API error: Too many requests');
+        throw Exception('Đã vượt quá giới hạn request API');
       } else {
+        print('Search API error ${response.statusCode}: ${response.body}');
         throw Exception('Lỗi tìm kiếm: ${response.statusCode}');
       }
     } catch (e) {
-      print('Lỗi tìm kiếm: $e');
-      throw Exception('Lỗi tìm kiếm: $e');
+      print('Search connection error: $e');
+      throw Exception('Không thể kết nối đến NewsAPI: $e');
     }
   }
 }

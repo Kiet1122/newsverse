@@ -1,18 +1,119 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../models/article_model.dart';
+import '../../auth/auth_provider.dart';
+import '../../profile/profile_provider.dart';
 
-class NewsCard extends StatelessWidget {
-  final ArticleModel article;
-  final VoidCallback onTap;
+class PersonalizedNewsList extends StatelessWidget {
+  final List<ArticleModel> articles;
+  final Function(ArticleModel) onTapArticle;
+  final ScrollController? scrollController;
 
-  const NewsCard({
+  const PersonalizedNewsList({
     super.key,
-    required this.article,
-    required this.onTap,
+    required this.articles,
+    required this.onTapArticle,
+    this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final profileProvider = context.watch<ProfileProvider>();
+
+    if (authProvider.user == null) {
+      return _buildDefaultNewsList();
+    }
+
+    if (profileProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final personalizedArticles = _getPersonalizedArticles(
+      articles,
+      profileProvider.preferences.favoriteCategories,
+    );
+
+    return _buildNewsList(personalizedArticles);
+  }
+
+  List<ArticleModel> _getPersonalizedArticles(
+    List<ArticleModel> allArticles,
+    List<String> favoriteCategories,
+  ) {
+    if (favoriteCategories.isEmpty || favoriteCategories.contains('general')) {
+      return allArticles;
+    }
+
+    final filteredArticles = allArticles.where((article) {
+      final articleCategory = _extractCategoryFromArticle(article);
+      return favoriteCategories.contains(articleCategory);
+    }).toList();
+
+    return filteredArticles.isNotEmpty ? filteredArticles : allArticles;
+  }
+
+  String _extractCategoryFromArticle(ArticleModel article) {
+    if (article.category != null && article.category!.isNotEmpty) {
+      return article.category!;
+    }
+
+    final title = article.title.toLowerCase();
+
+    if (title.contains('công nghệ') ||
+        title.contains('tech') ||
+        title.contains('ai')) {
+      return 'technology';
+    } else if (title.contains('kinh doanh') ||
+        title.contains('business') ||
+        title.contains('market')) {
+      return 'business';
+    } else if (title.contains('thể thao') ||
+        title.contains('sports') ||
+        title.contains('bóng')) {
+      return 'sports';
+    } else if (title.contains('giải trí') ||
+        title.contains('entertainment') ||
+        title.contains('phim')) {
+      return 'entertainment';
+    } else if (title.contains('sức khỏe') ||
+        title.contains('health') ||
+        title.contains('y tế')) {
+      return 'health';
+    } else if (title.contains('khoa học') || title.contains('science')) {
+      return 'science';
+    }
+
+    return 'general';
+  }
+
+  Widget _buildNewsList(List<ArticleModel> articles) {
+    if (articles.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return ListView.builder(
+      controller: scrollController,
+      itemCount: articles.length,
+      itemBuilder: (context, index) {
+        final article = articles[index];
+        return _buildNewsItem(article);
+      },
+    );
+  }
+
+  Widget _buildDefaultNewsList() {
+    return ListView.builder(
+      controller: scrollController,
+      itemCount: articles.length,
+      itemBuilder: (context, index) {
+        final article = articles[index];
+        return _buildNewsItem(article);
+      },
+    );
+  }
+
+  Widget _buildNewsItem(ArticleModel article) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -30,7 +131,7 @@ class NewsCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+          onTap: () => onTapArticle(article),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -137,6 +238,34 @@ class NewsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(Icons.article, color: Colors.grey[400], size: 32),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.article_outlined, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'Không có tin tức',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Hãy thử chọn danh mục khác',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

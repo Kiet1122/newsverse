@@ -2,54 +2,49 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/services/firebase/auth_service.dart';
 
-// Provider quản lý trạng thái đăng nhập, đăng ký
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
 
-  Map<String, dynamic>? _user; // Thông tin user hiện tại
-  bool _isLoading = false; // Đang xử lý
-  bool _isInitializing = true; // Đang khởi tạo
-  String? _error; // Lỗi nếu có
+  Map<String, dynamic>? _user; 
+  bool _isLoading = false; 
+  bool _isInitializing = true; 
+  String? _error; 
 
-  // Getter để truy cập từ bên ngoài
   Map<String, dynamic>? get user => _user;
   bool get isLoading => _isLoading;
   bool get isInitializing => _isInitializing;
   String? get error => _error;
 
-  // Khởi tạo - lắng nghe thay đổi trạng thái đăng nhập
+  /// Initialize authentication state listener
   void initialize() {
     _authService.authStateChanges.listen((User? firebaseUser) async {
       if (firebaseUser != null) {
-        // Có user đăng nhập, load thông tin
         await _loadUserData(firebaseUser.uid);
       } else {
-        // Không có user, set về null
         _user = null;
       }
       _isInitializing = false;
-      notifyListeners(); // Thông báo cho UI cập nhật
+      notifyListeners(); 
     });
   }
 
-  // Load thông tin user từ Firestore
+  /// Load user data from Firestore
   Future<void> _loadUserData(String uid) async {
     try {
       _user = await _authService.getUserData(uid);
       if (_user != null) {
-        print('Load user data thành công: ${_user?['email']}');
+        print('Load user data successful: ${_user?['email']}');
       } else {
-        print('Không thể load user data');
+        print('Unable to load user data');
       }
     } catch (e) {
       _error = e.toString();
-      print('Lỗi load user data: $e');
-      // Không set _user = null để tránh đăng xuất user
+      print('Error loading user data: $e');
     }
     notifyListeners();
   }
 
-  // Đăng ký tài khoản mới
+  /// Register a new user account
   Future<bool> signUp({
     required String name,
     required String email,
@@ -60,7 +55,7 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    print('Bắt đầu đăng ký user: $email');
+    print('Starting user registration: $email');
 
     try {
       _user = await _authService.signUpWithEmailAndPassword(
@@ -71,20 +66,20 @@ class AuthProvider with ChangeNotifier {
       );
       
       _isLoading = false;
-      print('Đăng ký thành công: ${_user?['email']}');
+      print('Registration successful: ${_user?['email']}');
       notifyListeners();
       return true;
     } catch (e) {
       _error = _getErrorMessage(e);
       _isLoading = false;
-      print('Lỗi đăng ký: $e');
+      print('Registration error: $e');
       print('Error message: $_error');
       notifyListeners();
       return false;
     }
   }
 
-  // Đăng nhập
+  /// Sign in with email and password
   Future<bool> signIn({
     required String email,
     required String password,
@@ -99,19 +94,19 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
       _isLoading = false;
-      print('Đăng nhập thành công: ${_user?['email']}');
+      print('Login successful: ${_user?['email']}');
       notifyListeners();
       return true;
     } catch (e) {
       _error = _getErrorMessage(e);
       _isLoading = false;
-      print('Lỗi đăng nhập: $e');
+      print('Login error: $e');
       notifyListeners();
       return false;
     }
   }
 
-  // Đăng xuất
+  /// Sign out the current user
   Future<void> signOut() async {
     _isLoading = true;
     notifyListeners();
@@ -120,17 +115,17 @@ class AuthProvider with ChangeNotifier {
       await _authService.signOut();
       _user = null;
       _error = null;
-      print('Đăng xuất thành công');
+      print('Sign out successful');
     } catch (e) {
       _error = _getErrorMessage(e);
-      print('Lỗi đăng xuất: $e');
+      print('Sign out error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Gửi email reset mật khẩu
+  /// Send password reset email
   Future<bool> resetPassword(String email) async {
     _isLoading = true;
     _error = null;
@@ -139,25 +134,25 @@ class AuthProvider with ChangeNotifier {
     try {
       await _authService.resetPassword(email);
       _isLoading = false;
-      print('Đã gửi email reset password');
+      print('Password reset email sent');
       notifyListeners();
       return true;
     } catch (e) {
       _error = _getErrorMessage(e);
       _isLoading = false;
-      print('Lỗi reset password: $e');
+      print('Password reset error: $e');
       notifyListeners();
       return false;
     }
   }
 
-  // Xóa lỗi hiện tại
+  /// Clear any existing error messages
   void clearError() {
     _error = null;
     notifyListeners();
   }
 
-  // Chuyển lỗi từ Firebase sang tiếng Việt dễ hiểu
+  /// Convert Firebase authentication errors 
   String _getErrorMessage(dynamic error) {
     if (error is FirebaseAuthException) {
       switch (error.code) {
