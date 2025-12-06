@@ -63,7 +63,43 @@ lib/
 │   └───utils
 │       └───enums
 │               article_source.dart
+│   └───utils
+│       └───enums
+│               article_source.dart
 │
+├───features
+│   ├───admin
+│   │   ├───screens
+│   │   └───widgets
+│   ├───auth
+│   │   │   auth_provider.dart
+│   │   │
+│   │   ├───screens
+│   │   │       forgot_password_screen.dart
+│   │   │       login_screen.dart
+│   │   │       register_screen.dart
+│   │   │
+│   │   └───widgets
+│   │           auth_button.dart
+│   │           auth_text_field.dart
+│   │
+│   ├───bookmark
+│   │   │   bookmark_provider.dart
+│   │   │
+│   │   └───screens
+│   │           favorites_screen.dart
+│   │
+│   ├───home
+│   │   │   home_provider.dart
+│   │   │
+│   │   ├───screens
+│   │   │       home_screen.dart
+│   │   │
+│   │   └───widgets
+│   │           category_chips.dart
+│   │           news_card.dart
+│   │           news_list.dart
+│   │           personalized_news_list.dart
 ├───features
 │   ├───admin
 │   │   ├───screens
