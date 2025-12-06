@@ -19,6 +19,18 @@ class FirestoreService {
     }
   }
 
+  Future<List<ArticleModel>> getAllArticles() async {
+    try {
+      final snapshot = await _firestore.collection('articles').get();
+
+      return snapshot.docs
+          .map((doc) => ArticleModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      throw Exception("Lỗi tải bài viết Firestore: $e");
+    }
+  }
+
   /// Get all articles from Firestore
   Future<List<ArticleModel>> getFirebaseArticles() async {
     try {

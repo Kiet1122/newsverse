@@ -5,15 +5,37 @@ import '../../core/services/firebase/auth_service.dart';
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
 
-  Map<String, dynamic>? _user; 
-  bool _isLoading = false; 
-  bool _isInitializing = true; 
-  String? _error; 
+  Map<String, dynamic>? _user;
+  bool _isLoading = false;
+  bool _isInitializing = true;
+  String? _error;
 
   Map<String, dynamic>? get user => _user;
   bool get isLoading => _isLoading;
   bool get isInitializing => _isInitializing;
   String? get error => _error;
+
+  // Thêm getter cho Firebase User
+  User? get firebaseUser => FirebaseAuth.instance.currentUser;
+
+  // Thêm getter cho user ID
+  String? get currentUserId => firebaseUser?.uid;
+
+  // Thêm getter cho user name
+  String? get currentUserName {
+    if (_user != null && _user!['name'] != null) {
+      return _user!['name'];
+    }
+    return firebaseUser?.displayName ?? firebaseUser?.email?.split('@').first;
+  }
+
+  // Thêm getter cho user avatar
+  String? get currentUserAvatar {
+    if (_user != null && _user!['avatarUrl'] != null) {
+      return _user!['avatarUrl'];
+    }
+    return firebaseUser?.photoURL;
+  }
 
   /// Initialize authentication state listener
   void initialize() {
@@ -24,7 +46,7 @@ class AuthProvider with ChangeNotifier {
         _user = null;
       }
       _isInitializing = false;
-      notifyListeners(); 
+      notifyListeners();
     });
   }
 
@@ -64,7 +86,7 @@ class AuthProvider with ChangeNotifier {
         password: password,
         role: role,
       );
-      
+
       _isLoading = false;
       print('Registration successful: ${_user?['email']}');
       notifyListeners();
@@ -80,10 +102,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// Sign in with email and password
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -152,7 +171,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Convert Firebase authentication errors 
+  /// Convert Firebase authentication errors
   String _getErrorMessage(dynamic error) {
     if (error is FirebaseAuthException) {
       switch (error.code) {

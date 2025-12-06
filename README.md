@@ -1,174 +1,172 @@
-# 📰 NewsVerse - Báo Cáo Tuần 3
+# 📰 NewsVerse - Báo Cáo Dự Án Tuần 5
 
-## 🗓️ Thời gian: Tuần 3 (Hoàn thành dự án)
+## ✅ Các Tính Năng Chính Đã Hoàn Thành
 
-## 📋 Tổng quan
-Tuần này tập trung vào hoàn thiện toàn bộ ứng dụng NewsVerse với đầy đủ tính năng: Authentication, News Feed, và Navigation.
+Dự án NewsVerse đã hoàn thiện với đầy đủ các tính năng cốt lõi và nâng cao, mang đến một trải nghiệm đọc tin tức toàn diện và có tính tương tác cao.
 
-## ✅ Công việc đã hoàn thành
+### 1. 🔐 Hệ thống Xác thực Người dùng (Authentication)
+-   **Đăng ký & Đăng nhập:** Hỗ trợ đăng ký tài khoản mới và đăng nhập bằng email/password.
+-   **Quên mật khẩu:** Chức năng cho phép người dùng lấy lại mật khẩu qua email.
+-   **Tự động đăng nhập (Auto-login):** Giữ trạng thái đăng nhập của người dùng sau khi thoát ứng dụng.
+-   **Đăng xuất:** Đảm bảo người dùng có thể đăng xuất khỏi tài khoản một cách an toàn.
 
-### 1. 🔐 Hệ thống Authentication
-- **Đăng ký tài khoản** với các role: User, Journalist
-- **Đăng nhập** với email/password
-- **Quên mật khẩu** - gửi email reset
-- **Auto-login** - giữ trạng thái đăng nhập
-- **Đăng xuất** an toàn
+### 2. 📰 Hệ thống Tin tức (News Feed)
+-   **Tổng hợp tin tức đa nguồn:** Kết hợp dữ liệu từ **Firebase** (do người dùng đóng góp) và **NewsAPI** (tin tức toàn cầu).
+-   **Loại bỏ trùng lặp:** Thuật toán thông minh tự động lọc và loại bỏ các bài viết trùng lặp.
+-   **Phân loại tin tức:** Hiển thị tin tức theo các danh mục (Categories) rõ ràng.
+-   **Chi tiết bài viết:** Cung cấp màn hình đọc báo đầy đủ nội dung, hình ảnh và thông tin liên quan.
 
-### 2. 📰 Hệ thống Tin tức
-- **Kết hợp dữ liệu** từ Firebase + NewsAPI
-- **Loại bỏ trùng lặp** tự động
-- **Phân loại tin** theo categories
-- **Chi tiết bài viết** với đầy đủ thông tin
+### 3. 🎧 Tính năng Tiện ích & Tương tác
+-   **Text-to-Speech (TTS):** Tích hợp chức năng đọc bài báo bằng giọng nói, giúp người dùng có thể "nghe" tin tức.
+-   **Bình luận (Comments):** Cho phép người dùng thảo luận và chia sẻ ý kiến dưới mỗi bài viết.
+-   **Thích (Likes):** Người dùng có thể bày tỏ sự yêu thích đối với các bình luận.
+-   **Lưu bài viết (Bookmarks):** Chức năng lưu lại các bài viết quan tâm để đọc sau.
 
-### 3. 🧭 Hệ thống Navigation
-- **Routing chuyên nghiệp** với `app_routes.dart`
-- **Navigation named routes** thay vì MaterialPageRoute
-- **Truyền parameters** an toàn giữa các màn hình
+### 4. 🧭 Hệ thống Điều hướng & Giao diện
+-   **Điều hướng chuyên nghiệp:** Sử dụng `named routes` để quản lý luồng di chuyển giữa các màn hình một cách rõ ràng và an toàn.
+-   **Giao diện thân thiện:** Thiết kế các màn hình (Trang chủ, Chi tiết, Đăng nhập,...) trực quan, dễ sử dụng.
 
-### 4. 🎨 Giao diện người dùng
-- **HomeScreen** với categories và news list
-- **NewsDetailScreen** hiển thị chi tiết bài viết
-- **Auth screens** (Login, Register, Forgot Password)
+### 🏗️ Cập nhật kiến trúc
 
-## 🏗️ Kiến trúc ứng dụng
+Kiến trúc ứng dụng được tổ chức theo từng tính năng (feature-based), giúp dễ dàng quản lý và mở rộng.
 
 ```
 lib/
-│
-├── firebase_options.dart          # Cấu hình Firebase
-├── main.dart                      # Khởi chạy ứng dụng
-│
-├── core/                          # Lõi ứng dụng
-│   ├── constants/
-│   │   └── api_constants.dart     # API keys và URLs
+├───firebase_options.dart        
+├───main.dart
+│   
+├───core
+│   ├───constants
+│   │       api_constants.dart   
+│   │       
+│   ├───layouts
+│   │   │   main_layout.dart     
+│   │   │
+│   │   └───widgets
+│   │           app_drawer.dart
+│   │           bottom_nav_bar.dart
 │   │
-│   ├── services/
-│   │   ├── api/
-│   │   │   └── news_api_service.dart      # Gọi API tin tức
-│   │   └── firebase/
-│   │       ├── auth_service.dart          # Đăng nhập, đăng ký
-│   │       └── firestore_service.dart     # Truy vấn database
+│   ├───services
+│   │   ├───api
+│   │   │       news_api_service.dart
+│   │   │
+│   │   ├───firebase
+│   │   │       auth_service.dart
+│   │   │       bookmark_service.dart
+│   │   │       comment_service.dart
+│   │   │       firestore_service.dart
+│   │   │       like_service.dart
+│   │   │
+│   │   └───tts
+│   │           tts_service.dart
 │   │
-│   └── utils/
-│       └── enums/
-│           └── article_source.dart        # Loại nguồn tin
+│   └───utils
+│       └───enums
+│               article_source.dart
 │
-├── features/                      # Các tính năng
-│   ├── auth/                      # Xác thực
-│   │   ├── auth_provider.dart           # Quản lý trạng thái đăng nhập
-│   │   ├── screens/
-│   │   │   ├── login_screen.dart        # Màn hình đăng nhập
-│   │   │   ├── register_screen.dart     # Màn hình đăng ký
-│   │   │   └── forgot_password_screen.dart # Quên mật khẩu
-│   │   └── widgets/
-│   │       ├── auth_button.dart         # Nút đăng nhập/đăng ký
-│   │       └── auth_text_field.dart     # Ô nhập thông tin
+├───features
+│   ├───admin
+│   │   ├───screens
+│   │   └───widgets
+│   ├───auth
+│   │   │   auth_provider.dart
+│   │   │
+│   │   ├───screens
+│   │   │       forgot_password_screen.dart
+│   │   │       login_screen.dart
+│   │   │       register_screen.dart
+│   │   │
+│   │   └───widgets
+│   │           auth_button.dart
+│   │           auth_text_field.dart
 │   │
-│   ├── home/                      # Trang chủ
-│   │   ├── home_provider.dart           # Quản lý tin tức
-│   │   ├── screens/
-│   │   │   └── home_screen.dart         # Màn hình chính
-│   │   └── widgets/
-│   │       ├── category_chips.dart      # Danh mục tin
-│   │       ├── news_card.dart           # Thẻ tin tức
-│   │       └── news_list.dart           # Danh sách tin
+│   ├───bookmark
+│   │   │   bookmark_provider.dart
+│   │   │
+│   │   └───screens
+│   │           favorites_screen.dart
 │   │
-│   ├── news/                      # Chi tiết tin
-│   │   └── screens/
-│   │       └── news_detail_screen.dart  # Màn hình chi tiết
+│   ├───home
+│   │   │   home_provider.dart
+│   │   │
+│   │   ├───screens
+│   │   │       home_screen.dart
+│   │   │
+│   │   └───widgets
+│   │           category_chips.dart
+│   │           news_card.dart
+│   │           news_list.dart
+│   │           personalized_news_list.dart
 │   │
-│   ├── admin/                     # Quản trị (chưa phát triển)
-│   ├── journalist/                # Nhà báo (chưa phát triển)
-│   ├── notification/              # Thông báo (chưa phát triển)
-│   └── profile/                   # Hồ sơ (chưa phát triển)
+│   ├───journalist
+│   │   ├───screens
+│   │   └───widgets
+│   ├───news
+│   │   ├───screens
+│   │   │       news_detail_screen.dart
+│   │   │
+│   │   └───widgets
+│   │           comment_section.dart
+│   │           like_button.dart
+│   │           tts_player.dart
+│   │
+│   ├───notification
+│   │   ├───screens
+│   │   └───widgets
+│   ├───profile
+│   │   │   profile_provider.dart
+│   │   │
+│   │   ├───screens
+│   │   │       profile_screen.dart
+│   │   │
+│   │   └───widgets
+│   │           bookmark_button.dart
+│   │           preference_selector.dart
+│   │
+│   ├───search
+│   │   └───screens
+│   │           search_screen.dart
+│   │
+│   └───splash
+│       └───screens
+│               splash_screen.dart
 │
-├── models/                        # Dữ liệu
-│   ├── article_model.dart               # Model bài viết
-│   ├── bookmark_model.dart              # Model bookmark
-│   ├── category_model.dart              # Model danh mục
-│   ├── user_model.dart                  # Model người dùng
-│   └── api/
-│       ├── api_article.dart             # Model API article
-│       └── news_response.dart           # Model phản hồi API
+├───models
+│   │   article_interaction_model.dart
+│   │   article_model.dart
+│   │   bookmark_model.dart
+│   │   category_model.dart
+│   │   comment_model.dart
+│   │   user_model.dart
+│   │   user_preferences.dart
+│   │
+│   └───api
+│           api_article.dart
+│           news_response.dart
 │
-├── providers/                     # Quản lý trạng thái
-│   └── app_provider.dart               # Provider toàn cục
+├───providers
+│       app_provider.dart
 │
-└── routes/                        # Điều hướng
-    ├── app_routes.dart                 # Định nghĩa routes
-    └── route_names.dart                # Tên routes
+└───routes
+        app_routes.dart
+        route_names.dart
 ```
 
-## 🔧 Tính năng chính
+### 📱 Demo tính năng mới
 
-### Authentication Flow
-```dart
-// Đăng ký → Xác thực → Tạo user document → Chuyển Home
-AuthProvider.signUp() → Firebase Auth → Firestore → HomeScreen
-```
+**1. Chi tiết bài viết với TTS Player**
+![Comment](https://res.cloudinary.com/dmnkakpnb/image/upload/v1764956144/tuan5-3_yyeazq.png)
 
-### News Data Flow
-```dart
-// Kết hợp nhiều nguồn dữ liệu
-Firebase Articles + NewsAPI → Combine & Remove Duplicates → Display
-```
+**2. Tương tác với bình luận (Thích và Xóa)**
+![Comment](https://res.cloudinary.com/dmnkakpnb/image/upload/v1764956144/tuan_5-2_bfadbd.png)
 
-### Navigation Flow
-```dart
-// Sử dụng named routes
-Navigator.pushNamed(context, RouteNames.newsDetail, arguments: article)
-```
+**3. Màn hình quản home**
+![Comment](https://res.cloudinary.com/dmnkakpnb/image/upload/v1764956144/tuan5-4_tfpzzw.pngg)
 
-## 📊 Kết quả đạt được
+### 🎯 Kết luận Tuần 5
 
-### ✅ Đã hoàn thành
-- [x] Toàn bộ authentication system
-- [x] News feed với multiple sources
-- [x] Professional routing system
-- [x] Complete UI/UX
-- [x] Error handling & loading states
-- [x] Firebase integration
+Việc bổ sung các tính năng tương tác đã biến NewsVerse từ một ứng dụng đọc tin tức đơn thuần thành một nền tảng tin tức cộng đồng. Người dùng giờ đây không chỉ tiêu thụ nội dung mà còn có thể tương tác với nội dung và với những người dùng khác.
 
-### 🔄 Hoạt động tốt
-- **API News**: Lấy được 19+ bài viết từ NewsAPI
-- **Firebase**: Lưu trữ user data và categories ...
-- **Authentication**: Đăng ký/đăng nhập ổn định
-- **Navigation**: Chuyển trang mượt mà
-
-## 🐛 Vấn đề đã giải quyết
-
-1. **Firebase Auth Errors** - Xử lý lỗi và hiển thị message tiếng Việt
-2. **API Rate Limiting** - Xử lý khi API hết request
-3. **Duplicate Articles** - Tự động loại bỏ bài viết trùng
-4. **Navigation Type Safety** - Sử dụng arguments với type checking
-
-
-## 📱 Demo ứng dụng
-
-### Màn hình chính
-![Home](https://res.cloudinary.com/dmnkakpnb/image/upload/v1763747909/Annotation_2025-11-22_001958_ra16ka.png)
-
-### Authentication
-![Auth](https://res.cloudinary.com/dmnkakpnb/image/upload/v1763747909/Annotation_2025-11-22_002111_g7joye.png)
-![User](https://res.cloudinary.com/dmnkakpnb/image/upload/v1763747908/Annotation_2025-11-22_002046_iezurg.png)
-
-
-### Chi tiết
-![Detail](https://res.cloudinary.com/dmnkakpnb/image/upload/v1763747908/Annotation_2025-11-22_002022_vyqydo.png)
-
-
-## 🎯 Kết luận
-
-**Tuần 3 thành công** với việc hoàn thiện toàn bộ ứng dụng NewsVerse. Ứng dụng đã có:
-
-- ✅ **Authentication system** hoàn chỉnh
-- ✅ **News aggregation** từ multiple sources
-- ✅ **Professional architecture** với clean code
-- ✅ **User-friendly interface** với tiếng Việt
-- ✅ **Firebase integration** ổn định
-
-Ứng dụng sẵn sàng cho việc sử dụng thực tế và có thể mở rộng thêm nhiều tính năng trong tương lai.
-
----
-**Developed by**: Nguyễn Tất Kiệt  
-**Date**: 22/11/2025  
+-   ✅ **TTS** giúp ứng dụng dễ tiếp cận hơn.
+-   ✅ **Bình luận & Thích** tăng cường sự gắn kết của người dùng.
+-   ✅ **Lưu bài viết** cải thiện trải nghiệm cá nhân hóa.
