@@ -8,6 +8,7 @@ import '../../../routes/route_names.dart';
 import '../../auth/auth_provider.dart';
 import '../../profile/profile_provider.dart';
 import '../../bookmark/bookmark_provider.dart';
+import 'package:newsverse/features/home/widgets/breaking_news_carousel.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -106,6 +107,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Column(
       children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.0),
+          child: BreakingNewsCarousel(),
+        ),
         if (provider.categories.isNotEmpty)
           Container(
             decoration: BoxDecoration(

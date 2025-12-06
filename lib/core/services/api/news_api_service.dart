@@ -1,9 +1,34 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:newsverse/models/api/api_article.dart';
+import 'package:newsverse/models/article_model.dart';
 import '../../constants/api_constants.dart';
 import '../../../models/api/news_response.dart';
 
 class NewsApiService {
+  Future<List<ArticleModel>> fetchTopHeadlines() async {
+    final url = Uri.parse(
+      "https://newsapi.org/v2/top-headlines?country=us&apiKey=${ApiConstants.newsApiKey}",
+    );
+
+    final response = await http.get(url);
+
+    print("STATUS: ${response.statusCode}");
+    print("BODY: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      List articles = data['articles'];
+
+      return articles.map((json) {
+        final apiArticle = ApiArticle.fromJson(json);
+        return ArticleModel.fromApiArticle(apiArticle);
+      }).toList();
+    } else {
+      throw Exception("Lỗi tải tin từ API");
+    }
+  }
+
   /// Fetches news articles from the NewsAPI based on category
   Future<NewsResponse> fetchNews({String category = 'general'}) async {
     try {

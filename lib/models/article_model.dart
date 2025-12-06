@@ -11,8 +11,8 @@ class ArticleModel {
   final DateTime publishedAt;
   final String? content;
   final String source;
-  final String? categoryId; // ID from Firestore
-  final String? category;   // Value from category mapping
+  final String? categoryId; 
+  final String? category;   
 
   ArticleModel({
     required this.id,
