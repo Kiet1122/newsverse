@@ -30,6 +30,26 @@ class HomeProvider with ChangeNotifier {
     await loadCombinedNews();
   }
 
+  Future<List<ArticleModel>> getMixedArticles({int limit = 10}) async {
+    try {
+      final firestoreSnapshot =
+          await firestoreService.getAllArticles(); 
+
+      final firestoreArticles = firestoreSnapshot;
+
+      final apiArticles = await newsApiService.fetchTopHeadlines();
+
+      final all = [...firestoreArticles, ...apiArticles];
+
+      all.shuffle();
+
+      return all.take(limit).toList();
+    } catch (e) {
+      debugPrint("Lỗi mix dữ liệu: $e");
+      return [];
+    }
+  }
+
   Future<void> refreshData() async {
     _isLoading = true;
     _error = '';
